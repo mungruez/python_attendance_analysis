@@ -464,8 +464,8 @@ for employee in employees :
                 'event_name': events[i]['event_name'], 
                 'country': events[i]['country'],
                 'event_date': events[i]['event_date'], 
-                'number_of_infraction' : event_infractions,
-                'yearly_infractions_to_this_date': yearly_infractions
+                #'number_of_infraction' : event_infractions,
+                #'yearly_infractions_to_this_date': yearly_infractions
         })
 
         if yearly_infractions >= 3:
@@ -523,133 +523,5 @@ for employee in employees :
  
 with open('result.json', 'w') as fp:
     json.dump(identified_employees, fp)
-
-################################################################################################################################################
-# line(1-19) The requests module was used to fetch the weather and events from the APIs. 
-# line(19-25) Opened the employee.json and attendance.json file from the same directory and loaded files from json to python list.
-# line(25-53) Process the weather, events and atttendance to compute and store the start record for the weather and events for each country and for each employee's attendance.
-#     The location of the first record where the weather and events start for a new country is stored in dictionaries to implement an efficient sliding window algorithm. Th same is done for the attendance records where a different employee ateendance record starts.
-# line(53-243) For each employee ,  for each event date in the employee's country events list and for each record in the attendance for the employees, check the attendance list to see :
-# line(77-91) The events[i][event_date'] was checked for bad weather in the same country as the event.
-# line(94) The events[i][event_date'] was split to compare to the date of the attendance records for employees in the same country as the event.
-# line(115-150) The employee records was checks for late on, before or after the event date
-# line(151-158) clock_in(_on,_after,_before)="N/A" for on the day of,day before or day after the event is used to indicate absenteeism. 
-# line(158-165) Give a sepate infraction for being late on,before or after an event.
-# line(172-180) The year_analysis[] list stores all infractions in a year for an employee. Here this list must be cleared when an event with a new year is encountered and stored if the yearly_infractions is greater than 2.
-# line(183-188) If 3 or more infractions are found in a year the year_analysis[] list will become the list of suspicious events for the employee.
-# line(197-208) The soloution is placed in identified_employees[] which is a list of dictionaries. The last items in this dictionary is the list of suspicious events.
-# line(208-239) 'average_hours_per_week' is only computed for employees identified as having 3 or more infraction in a year. 
-# attendance[77927] clockin: and clockout:None, 
-#
-#  WEATHER
-#  "country": "Australia",
-#  "date": "2022-01-01",
-#  "condition": "rainy",
-#  "max_temp": 24,
-#
-#  EVENT
-#  "id": 24,
-#  "event_name": "Whimsical Festival",
-#  "event_date": "2024-04-19",
-#  "country": "Australia", 
-#
-# EMPLOYEE
-# record_id": 1, 
-# "name": "Dawn Hartman", 
-# "work_id_number": "1d27d30c-0da9-4cd4-8624-ee33f954b637", 
-# "email_address": "nicholascook@example.org", 
-# "country": "Trinidad and Tobago", 
-# "phone_number": "484.871
-#
-#  ATTENDANCE
-#  "record_id": 1, 
-#  "date": "2022-01-03", 
-#  "clock_in": "08:06:00", 
-#  "clock_out": "16:32:00", 
-#  "employee_record_id":
-
-
-def binary_search_attendance(attendance, event_date):
-    event_date_arr = event_date.split('-')
-    late_before = True
-    late_on = True
-    late_after = True
-    clock_in_before="N/A"
-    clock_in_on="N/A"
-    clock_in_after="N/A"
-    low = 0
-    high = len(attendance) - 1
-    mid = 0
-    
-
-    while low <= high:
- 
-        mid = (high + low) // 2
-        mid_date_arr = attendance[mid]['date'].split('-')
-
-        # If x is greater, ignore left half
-        if mid_date_arr[0]<event_date_arr[0] or mid_date_arr[1]<event_date_arr[1] or (mid_date_arr[0]==event_date_arr[0] and mid_date_arr[1]==event_date_arr[1] and mid_date_arr[2]<event_date_arr[2]-1 ):
-            low = mid + 1
- 
-        # If weather[mid]['date'] > event_date then the event_date is smaller so ignore the right half
-        elif mid_date_arr[0]>event_date_arr[0] or mid_date_arr[1]>event_date_arr[1] or (mid_date_arr[0]>event_date_arr[0] or mid_date_arr[1]>event_date_arr[1] and mid_date_arr[2]>event_date_arr[2]+1) :
-            high = mid - 1
- 
-        # means x is present at mid
-        elif mid_date_arr[0]==event_date_arr[0] and mid_date_arr[1]==event_date_arr[1] and mid_date_arr[2]==event_date_arr[2]-1 :
-            late_before = check_clock(attendance[mid]['clock_in'].split(':'), attendance[mid]['clock_out'].split(':'))
-            clock_in_before=attendance[mid]['clock_in']  
-                
-            mid_date_arr1 = attendance[mid+1]['date'].split('-')
-            if mid_date_arr1[0]==event_date_arr[0] and mid_date_arr1[1]==event_date_arr[1] and mid_date_arr1[2]==event_date_arr[2] :
-                late_on = check_clock(attendance[mid+1]['clock_in'].split(':'), attendance[mid+1]['clock_out'].split(':'))
-                clock_in_on=attendance[mid+1]['clock_in']
-
-                mid_date_arr2 = attendance[mid+2]['date'].split('-')
-                if mid_date_arr2[0]==event_date_arr[0] and mid_date_arr2[1]==event_date_arr[1] and mid_date_arr2[2]==event_date_arr[2]+1 :
-                    late_after = check_clock(attendance[mid+2]['clock_in'].split(':'), attendance[mid+2]['clock_out'].split(':'))
-                    clock_in_after=attendance[mid+2]['clock_in']
-                    
-            elif mid_date_arr1[0]==event_date_arr[0] and mid_date_arr1[1]==event_date_arr[1] and mid_date_arr1[2]==event_date_arr[2]+1:
-                late_after = check_clock(attendance[mid+1]['clock_in'].split(':'), attendance[mid+1]['clock_out'].split(':'))
-                clock_in_after=attendance[mid+1]['clock_in']              
-                
-        elif mid_date_arr[0]==event_date_arr[0] and mid_date_arr[1]==event_date_arr[1] and mid_date_arr[2]==event_date_arr[2] :
-            late_on = check_clock(attendance[mid]['clock_in'].split(':'), attendance[mid]['clock_out'].split(':'))
-            clock_in_on=attendance[mid]['clock_in']  
-                
-            mid_date_arr1 = attendance[mid+1]['date'].split('-')
-            if mid_date_arr1[0]==event_date_arr[0] and mid_date_arr1[1]==event_date_arr[1] and mid_date_arr1[2]==event_date_arr[2]+1:
-                late_after = check_clock(attendance[mid+1]['clock_in'].split(':'), attendance[mid+1]['clock_out'].split(':'))
-                clock_in_after=attendance[mid+1]['clock_in']
-                    
-            mid_date_arr2 = attendance[mid-1]['date'].split('-')
-            if mid_date_arr2[0]==event_date_arr[0] and mid_date_arr2[1]==event_date_arr[1] and mid_date_arr2[2]==event_date_arr[2]-1:
-                late_before = check_clock(attendance[mid-1]['clock_in'].split(':'), attendance[mid-1]['clock_out'].split(':'))
-                clock_in_before=attendance[mid-1]['clock_in'] 
-
-        elif mid_date_arr[0]==event_date_arr[0] and mid_date_arr[1]==event_date_arr[1] and mid_date_arr[2]==event_date_arr[2]+1 :
-            late_after = check_clock(attendance[mid]['clock_in'].split(':'), attendance[mid]['clock_out'].split(':'))
-            clock_in_after=attendance[mid]['clock_in']  
-                
-            mid_date_arr1 = attendance[mid-1]['date'].split('-')
-            if mid_date_arr1[0]==event_date_arr[0] and mid_date_arr1[1]==event_date_arr[1] and mid_date_arr1[2]==event_date_arr[2] :
-                late_on = check_clock(attendance[mid-1]['clock_in'].split(':'), attendance[mid-1]['clock_out'].split(':'))
-                clock_in_on=attendance[mid-1]['clock_in']
-
-                mid_date_arr2 = attendance[mid-2]['date'].split('-')
-                if mid_date_arr2[0]==event_date_arr[0] and mid_date_arr2[1]==event_date_arr[1] and mid_date_arr2[2]==event_date_arr[2]-1:
-                    late_before = check_clock(attendance[mid-2]['clock_in'].split(':'), attendance[mid-2]['clock_out'].split(':'))
-                    clock_in_before=attendance[mid-2]['clock_in']
-
-            elif mid_date_arr1[0]==event_date_arr[0] and mid_date_arr1[1]==event_date_arr[1] and mid_date_arr1[2]==event_date_arr[2]-1:
-                clock_in_before=attendance[mid-1]['clock_in']
-                late_before = check_clock(attendance[mid-1]['clock_in'].split(':'), attendance[mid-1]['clock_out'].split(':'))
-
-
-            return [late_before,late_on,late_after]
- 
-    # Here, the employee was not present on the of event_date,niether the day before nor the day after.
-    return [late_before,late_on,late_after]
 
 
