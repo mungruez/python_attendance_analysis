@@ -51,10 +51,10 @@
 ###### "email_address": "nicholascook@example.org", 
 ###### "country": "Trinidad and Tobago", 
 ###### "phone_number": "484.871
-#
-#  ATTENDANCE
-#  "record_id": 1, 
-#  "date": "2022-01-03", 
-#  "clock_in": "08:06:00", 
-#  "clock_out": "16:32:00", 
-#  "employee_record_id":
+
+######  ATTENDANCE
+######  "record_id": 1, 
+######  "date": "2022-01-03", 
+######  "clock_in": "08:06:00", 
+######  "clock_out": "16:32:00", 
+######  "employee_record_id":
